@@ -1,7 +1,7 @@
 <?php
 require "../model/connection.php";
 require "../model/user.php";
-
+session_start();
 $message = [];
 if(isset($_SESSION['username'])){
     $id = getCurrentId();
@@ -44,7 +44,7 @@ if(isset($_SESSION['username'])){
                     $sql =  "UPDATE user SET `name` = :name, `email` = :email, `role` = :role WHERE `id` = :id ";
                     $stmt= $pdo->prepare($sql);
                     if ($stmt->execute($data)) {
-                        header("Location: index.php");
+                        echo "<script>alert('update successfully!');document.location='index.php'</script>";
                     }
                 }
                 
@@ -54,8 +54,7 @@ if(isset($_SESSION['username'])){
         }
     }  
 } else {
-    // echo "<script>alert('can not update');document.location='index.php'</script>";
-    header("Location:index.php");
+    echo "<script>alert('can not update');document.location='index.php'</script>";
 }
     
 

@@ -2,7 +2,7 @@
 require "../model/connection.php";
 
     function getCurrentId() {
-        $id = '';
+        $id = 0;
         if(isset($_GET['id'])){
             $id = $_GET['id'];
         }
@@ -87,6 +87,26 @@ require "../model/connection.php";
         }
         if(!checkRole($role)){
             $errorMessages[] = "Please choose your role";
+        }
+        return $errorMessages;
+    }
+    function validatedLogin(){
+        $email = '';
+        $password = '';
+        if(isset($_POST['email'])){
+            $email = filter_var($_POST['email'], FILTER_VALIDATE_EMAIL);
+        }
+        if(isset($_POST['password'])){
+            $password = $_POST['password'];
+        }
+
+        $errorMessages = [];
+        
+        if(empty($email)){
+            $errorMessages[] = "Email required";
+        }
+        if(empty($password)){
+            $errorMessages[] = "Password required";
         }
         return $errorMessages;
     }

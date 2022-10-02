@@ -101,10 +101,10 @@
                                 <input type="submit" class="btn btn-success" name="save" value="Register"/>
                             </div>
                             <div class = "col-3  my-1" style="text-align:right">
-                                 <label>Login with an exists account</label>
+                                 <label>Already have an Account</label>
                             </div>
                             <div class = "col-1  my-1">
-                            <a href="login.php" class="btn btn-primary">Login</a>
+                            <a href="login.php" class="btn btn-link">Login Instead</a>
                             </div>
                         </div>
                     </div>

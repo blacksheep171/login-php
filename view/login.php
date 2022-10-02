@@ -1,6 +1,7 @@
 <?php
 
 include "../model/connection.php";
+include "../model/user.php";
 
 ob_start();
 session_start();
@@ -9,25 +10,28 @@ if(isset($_SESSION['username'])){
 }
     if(isset($_POST['login']) && ($_POST['login'])) {
         $email = $_POST['email'];
-        $password_hash = md5($_POST['password']);
-
+        $password = md5($_POST['password']);
+        
+        if(validatedLogin()){
+            $message = array_merge(validatedLogin(),$message);
+        }
         $data = [
             ':email' => $email,
-            ':password' => $password_hash
+            ':password' => $password
         ];
-        $stmt = $pdo->prepare("SELECT * FROM user WHERE `email` = :email AND `password` = :password");
+        $stmt = $pdo->prepare("SELECT * FROM user WHERE `email` = :email AND `password` = :password ");
         $stmt->execute($data);
         $result = $stmt->setFetchMode(PDO::FETCH_ASSOC);
         $data = $stmt->fetchAll();
-        // var_dump($data);die();
 
-        $userId = $data[0]['id'];
-        $username = $data[0]['name'];
-        $email = $data[0]['email'];
-        if(!empty($email)) {
-            // $_SESSION['id'] = $id;
-            $_SESSION['username'] = $username;
-            // header("Location:index.php");
+        if(!empty($data)) {
+            $data_username = $data[0]['name'];
+            $data_email = $data[0]['email'];
+        }
+       
+        if(!empty($data_email)) {
+            $_SESSION['username'] = $data_username;
+            header("Location:index.php");
         } else {
             $message[] = "Login failed. Please try again";
         }
