@@ -1,16 +1,36 @@
 <?php
 
+include "../model/connection.php";
+
 ob_start();
 session_start();
-if(isset($_SESSION['user'])){
+if(isset($_SESSION['username'])){
     header("Location:index.php");
 }
     if(isset($_POST['login']) && ($_POST['login'])) {
         $email = $_POST['email'];
-        $password = $_POST['password'];
-        $_SESSION['email'] = $email;
-    //    print_r($_SESSION['email']);
-        header("Location:index.php");
+        $password_hash = md5($_POST['password']);
+
+        $data = [
+            ':email' => $email,
+            ':password' => $password_hash
+        ];
+        $stmt = $pdo->prepare("SELECT * FROM user WHERE `email` = :email AND `password` = :password");
+        $stmt->execute($data);
+        $result = $stmt->setFetchMode(PDO::FETCH_ASSOC);
+        $data = $stmt->fetchAll();
+        // var_dump($data);die();
+
+        $userId = $data[0]['id'];
+        $username = $data[0]['name'];
+        $email = $data[0]['email'];
+        if(!empty($email)) {
+            // $_SESSION['id'] = $id;
+            $_SESSION['username'] = $username;
+            // header("Location:index.php");
+        } else {
+            $message[] = "Login failed. Please try again";
+        }
     }
 ?>
 
@@ -32,6 +52,12 @@ if(isset($_SESSION['user'])){
                 <div class="panel-heading">
                     <h2 class="text-center">Login Form</h2>
                 </div>
+                <?php if(isset($message)){
+                    foreach($message as $error) {
+                        echo "<p class = 'small text-danger'>".$error."</p>";
+                    }
+                }
+                ?>
                 <form action="<?php echo $_SERVER['PHP_SELF'];?>" method="post">
                     <div class="panel-body">
                         <div class="form-group">

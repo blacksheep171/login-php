@@ -1,5 +1,12 @@
 <?php 
     include "../model/connection.php";
+
+    ob_start();
+    session_start();
+
+    if(isset($_SESSION['username'])){
+        header("Location:index.php");
+    }
     $data = $pdo->query("SELECT * FROM user")->fetchAll();
     
 ?>
@@ -18,22 +25,24 @@
 <body>
 <div class="container">
 <div class="page-header">
-            <div class="d-flex justify-content-end">
+            <nav class="navbar navbar-light d-flex justify-content-end" style="background-color: #e3f2fd;">
+                <?php if(isset($_SESSION['username']) && ($_SESSION['username'] != "")) {
+                    echo "
+                    <a href='#' class='btn btn-link'>Hello ".$_SESSION['username']."</a>
+                    <a href='logout.php' class='btn btn-primary'>Logout</a>
+                    ";
+                } else {
+                ?>
+                    <a href='login.php' class='btn btn-primary'>Login</a>
+                    <a href='register.php' class='btn btn-success'>Register</a>
+                <?php } ?>
+            </nav>
             
-                <a href="login.php" class="btn btn-primary">Login</a>
-                <a href="register.php" class="btn btn-success">Register</a>
-
-                <!-- <a href="logout.php" class="btn btn-primary">Logout</a> -->
-
-                <!-- <a href="#" class="btn btn-link">$_SESSION['name']</a> -->
-            
-        </div>
     <div class="panel panel-primary">
         <div class="panel-heading">
             <h2 class="text-center">User List</h2>
         </div>
         <div class="col-12">
-            <!-- <a href="logout.php" class="btn btn-primary">Logout</a> -->
             <table class="table table-bordered table-striped" style="margin-top:20px;">
                 <thead>
                     <th>ID</th>

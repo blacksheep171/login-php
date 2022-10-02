@@ -2,50 +2,62 @@
 require "../model/connection.php";
 require "../model/user.php";
 
-// if(isset($_SESSION['user'])){
+$message = [];
+if(isset($_SESSION['username'])){
     $id = getCurrentId();
     $stmt = $pdo->prepare("SELECT * FROM user WHERE id=:id");
-    $stmt->execute(['id' => $id]); 
-    $row = $stmt->fetch();
+    if ($stmt->execute(['id' => $id])) {
+        $row = $stmt->fetch();
+    } else {
+        $message[] = "No data found";
+    }
 
     if(isset($_POST['save'])) {
-
         $name = $_POST['name'];
         $email = filter_var($_POST['email'], FILTER_VALIDATE_EMAIL);
-        $password = strip_tags($_POST['password']);
-        $password_confirm = strip_tags($_POST['password_confirm']);
-        if($password !== $password_confirm) {
-            $message = "confirm password not correct";
+        $role = $_POST['role'];
+        if(validatedUpdate()){
+            $message = array_merge(validatedUpdate(),$message);      
         }
-
-        $role = $_POST['role']; 
-        if(!checkRole($role)) {
-            // $message = "ok";
-        } 
-
-        $password_hash = password_hash($password, PASSWORD_DEFAULT);
         
         if(empty($message)) {
-            $data = [
-                ':name' => $name,
-                ':email' => $email,
-                ':password' => $password_hash,
-                ':role' => $role,
-                ':id' => $id
-            ];
-            $sql =  "UPDATE user SET `name` = :name, `email` = :email, `password` = :password, `role` = :role WHERE `id` = :id ";
-            $stmt= $pdo->prepare($sql);
-            $stmt->execute($data);
-
-            $message = "Update successfully";
-            header("Location: index.php");
+            try {
+                $data = $pdo->query("SELECT * FROM user")->fetchAll();
+                foreach($data as $key => $users){
+                    if($users['email'] == $row['email']){
+                        unset($data[$key]);
+                    }
+                }
+                foreach($data as $key => $users){
+                    if($users['email'] == $email){
+                        $message[] = 'Email already exists';
+                    }
+                }
+                if(empty($message)) {
+                    
+                    $data = [
+                        ':name' => $name,
+                        ':email' => $email,
+                        ':role' => $role,
+                        ':id' => $id
+                    ];
+                    $sql =  "UPDATE user SET `name` = :name, `email` = :email, `role` = :role WHERE `id` = :id ";
+                    $stmt= $pdo->prepare($sql);
+                    if ($stmt->execute($data)) {
+                        header("Location: index.php");
+                    }
+                }
+                
+            } catch (Exception $e) {
+                $pdoError = $e->getMessage();
+            }
         }
-    }
-// } else {
+    }  
+} else {
+    // echo "<script>alert('can not update');document.location='index.php'</script>";
     header("Location:index.php");
-    $message = "don't have permission to update user";
-// }
-   
+}
+    
 
 ?>
 <!DOCTYPE html>
@@ -67,8 +79,10 @@ require "../model/user.php";
             <h2 class="text-center">Update Your Account</h2>
         </div>
         <?php if(isset($message)){
-            echo $message;
-        }
+                foreach($message as $error) {
+                    echo "<p class = 'small text-danger'>".$error."</p>";
+                }
+            }
         ?>
         <form action="" method="post">
             <div class="panel-body">
@@ -81,14 +95,14 @@ require "../model/user.php";
                     <input type="email" name="email"  value="<?= $row['email']?>" class="form-control" id="email" required>
                 </div>
             
-                <div class="form-group">
+                <!-- <div class="form-group">
                     <label for="password">Password:</label>
                     <input type="password" name="password"  value="" class="form-control" id="password" required>
                 </div>
                 <div class="form-group">
                     <label for="password_confirm">Confirmation Password:</label>
                     <input type="password" name="password_confirm"  value="" class="form-control" id="password_confirm" required>
-                </div>
+                </div> -->
                 <div class="form-group">
                     <select class="form-select" name="role"  value="<?php $result = $row['role']?>" aria-label="select">
                         <option selected>Choose your role</option>

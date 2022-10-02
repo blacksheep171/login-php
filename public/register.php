@@ -1,37 +1,46 @@
 <?php
     require "../model/connection.php";
-    
+    require "../model/user.php";
+    $message = [];
     if(isset($_POST['save'])) {
-
         $name = $_POST['name'];
         $email = filter_var($_POST['email'], FILTER_VALIDATE_EMAIL);
         $password = strip_tags($_POST['password']);
-        $password_confirm = $_POST['password_confirm'];
-
-        if($password !== $password_confirm) {
-            $message = "confirm password not correct";
-        }
+        $password_confirm = strip_tags($_POST['password_confirm']);
         $role = $_POST['role']; 
-
-        $password_hash = password_hash($password, PASSWORD_DEFAULT);
-
-        if(empty($message)) {
-            $data = [
-                ':name' => $name,
-                ':email' => $email,
-                ':password' => $password_hash,
-                ':role' => $role,
-                ':id' => $id
-            ];
-            $sql = "INSERT INTO `user` (`name`, `email`, `password`, `role`) VALUES (:name, :email, :password, :role)";
-            $stmt= $pdo->prepare($sql);
-            $stmt->execute($data);
-
-            header("Location: index.php");
+        if(validated()){
+            $message = array_merge(validated(),$message);      
         }
-        // $message = "Update successfully";
-    }
         
+        if(empty($message)) {
+
+            try {
+                $select_stmt = $pdo->prepare("SELECT * FROM user WHERE email = :email ");
+                $select_stmt->execute([':email' => $email]);
+                $data = $select_stmt->fetch();
+             
+                if(isset($data['email']) == $email) {
+                            $message[] = 'Email already exists';
+                } else {
+                    $password_hash = md5($password);
+                    $data = [
+                        ':name' => $name,
+                        ':email' => $email,
+                        ':password' => $password_hash,
+                        ':role' => $role
+                    ];
+
+                    $sql = "INSERT INTO `user` (`name`, `email`, `password`, `role`) VALUES (:name, :email, :password, :role)";
+                    $stmt= $pdo->prepare($sql);
+                    if ($stmt->execute($data)) {
+                        header("Location:index.php?msg=".urlencode('Click the verification email'));
+                    }
+                }
+            } catch (PDOException $e) {
+                $pdoError = $e->getMessage();
+            }   
+        }
+    }
    
 ?>
 <!DOCTYPE html>
@@ -53,7 +62,9 @@
 				<h2 class="text-center">Register New Account</h2>
 			</div>
             <?php if(isset($message)){
-                echo $message;
+                foreach($message as $error) {
+                    echo "<p class = 'small text-danger'>".$error."</p>";
+                }
             }
             ?>
             <form action="" method="post">
