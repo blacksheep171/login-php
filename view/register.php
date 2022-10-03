@@ -1,47 +1,26 @@
 <?php
-    require "../model/connection.php";
-    require "../model/user.php";
+
+session_start();
+
+    include_once "../model/config.php";
+    include_once "../model/user.php";
+    $con  = Config::connect();
     $message = [];
-    if(isset($_POST['save'])) {
+    if(isset($_POST['save'])){
         $name = $_POST['name'];
-        $email = filter_var($_POST['email'], FILTER_VALIDATE_EMAIL);
-        $password = strip_tags($_POST['password']);
-        $password_confirm = strip_tags($_POST['password_confirm']);
-        $role = $_POST['role']; 
+        $email = $_POST['email'];
+        $password = $_POST['password'];
+        $passwordConfirm = $_POST['password_confirm'];
+        $role = $_POST['role'];
         if(validated()){
-            $message = array_merge(validated(),$message);      
+            $message = array_merge(validated(),$message);
         }
-        
-        if(empty($message)) {
-
-            try {
-                $select_stmt = $pdo->prepare("SELECT * FROM user WHERE email = :email ");
-                $select_stmt->execute([':email' => $email]);
-                $data = $select_stmt->fetch();
-             
-                if(isset($data['email']) == $email) {
-                            $message[] = 'Email already exists';
-                } else {
-                    $password_hash = md5($password);
-                    $data = [
-                        ':name' => $name,
-                        ':email' => $email,
-                        ':password' => $password_hash,
-                        ':role' => $role
-                    ];
-
-                    $sql = "INSERT INTO `user` (`name`, `email`, `password`, `role`) VALUES (:name, :email, :password, :role)";
-                    $stmt= $pdo->prepare($sql);
-                    if ($stmt->execute($data)) {
-                        header("Location:index.php?msg=".urlencode('Click the verification email'));
-                    }
-                }
-            } catch (PDOException $e) {
-                $pdoError = $e->getMessage();
-            }   
+        if(empty($message)){
+            if(create($con,$name,$email,$password,$role)){
+                header("Location:login.php");
+            }
         }
     }
-   
 ?>
 <!DOCTYPE html>
 <html>
@@ -101,10 +80,10 @@
                                 <input type="submit" class="btn btn-success" name="save" value="Register"/>
                             </div>
                             <div class = "col-3  my-1" style="text-align:right">
-                                 <label>Already have an Account</label>
+                                 <label>Login with an exists account</label>
                             </div>
                             <div class = "col-1  my-1">
-                            <a href="login.php" class="btn btn-link">Login Instead</a>
+                            <a href="login.php" class="btn btn-primary">Login</a>
                             </div>
                         </div>
                     </div>

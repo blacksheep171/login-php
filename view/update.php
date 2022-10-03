@@ -1,75 +1,43 @@
 <?php
-require "../model/connection.php";
+require "../model/config.php";
 require "../model/user.php";
-session_start();
-$message = [];
-if(isset($_SESSION['username'])){
-    $id = getCurrentId();
-    $stmt = $pdo->prepare("SELECT * FROM user WHERE id=:id");
-    if ($stmt->execute(['id' => $id])) {
-        $row = $stmt->fetch();
-    } else {
-        $message[] = "No data found";
-    }
 
+if (isset($_SESSION['user_name'])) {
+    $message = [];
+    $con = Config::connect();
+    $id = getCurrentId();
+    $current_user = getUser($con,$id);
+    $row = $current_user[0];
     if(isset($_POST['save'])) {
         $name = $_POST['name'];
         $email = filter_var($_POST['email'], FILTER_VALIDATE_EMAIL);
         $role = $_POST['role'];
-        if(validatedUpdate()){
-            $message = array_merge(validatedUpdate(),$message);      
+        if(validated()){
+            $message = array_merge(validated(),$message);
         }
-        
-        if(empty($message)) {
-            try {
-                $data = $pdo->query("SELECT * FROM user")->fetchAll();
-                foreach($data as $key => $users){
-                    if($users['email'] == $row['email']){
-                        unset($data[$key]);
-                    }
-                }
-                foreach($data as $key => $users){
-                    if($users['email'] == $email){
-                        $message[] = 'Email already exists';
-                    }
-                }
-                if(empty($message)) {
-                    
-                    $data = [
-                        ':name' => $name,
-                        ':email' => $email,
-                        ':role' => $role,
-                        ':id' => $id
-                    ];
-                    $sql =  "UPDATE user SET `name` = :name, `email` = :email, `role` = :role WHERE `id` = :id ";
-                    $stmt= $pdo->prepare($sql);
-                    if ($stmt->execute($data)) {
-                        echo "<script>alert('update successfully!');document.location='index.php'</script>";
-                    }
-                }
-                
-            } catch (Exception $e) {
-                $pdoError = $e->getMessage();
+        if(empty($message)){
+            if(update($con,$id,$name,$email,$role)){
+                header("Location:index.php");
+            } else {
+                $message[] = "update failed! Please try later.";
             }
         }
-    }  
+    } 
 } else {
-    echo "<script>alert('can not update');document.location='index.php'</script>";
+    echo "<script>alert('can not update !');document.location='index.php'</script>";
 }
-    
-
 ?>
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="UTF-8">
-<meta http-equiv="X-UA-Compatible" content="IE=edge">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"></script>
-<title>Update Account</title>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"></script>
+    <title>Update Account</title>
 </head>
 <body>
 <div class="container">
@@ -93,15 +61,7 @@ if(isset($_SESSION['username'])){
                     <label for="email">Email:</label>
                     <input type="email" name="email"  value="<?= $row['email']?>" class="form-control" id="email" required>
                 </div>
-            
-                <!-- <div class="form-group">
-                    <label for="password">Password:</label>
-                    <input type="password" name="password"  value="" class="form-control" id="password" required>
-                </div>
-                <div class="form-group">
-                    <label for="password_confirm">Confirmation Password:</label>
-                    <input type="password" name="password_confirm"  value="" class="form-control" id="password_confirm" required>
-                </div> -->
+        
                 <div class="form-group">
                     <select class="form-select" name="role"  value="<?php $result = $row['role']?>" aria-label="select">
                         <option selected>Choose your role</option>

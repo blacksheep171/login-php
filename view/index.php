@@ -1,18 +1,12 @@
 <?php 
     ob_start();
     session_start();
-    include "../model/connection.php";
-
-    if(isset($_SESSION['username'])){   
-        echo "Welcome".$_SESSION['username'];
-    } else {
-        echo "No session";
-    }
-    $data = $pdo->query("SELECT * FROM user")->fetchAll();
-    
+    include_once "../model/config.php";
+    include_once "../model/user.php";
+    $con = Config::connect();
+    $data = index($con);
 ?>
     <?php include "../view/header.php"; ?>
-            
     <div class="panel panel-primary">
         <div class="panel-heading">
             <h2 class="text-center">User List</h2>
@@ -29,21 +23,21 @@
                 <tbody>
                     <?php
                         if(!empty($data)) {
-                        foreach($data as $row){
-                            echo "
-                                <tr>
-                                    <td>".$row['id']."</td>
-                                    <td>".$row['name']."</td>
-                                    <td>".$row['email']."</td>
-                                    <td>".$row['role']."</td>
-                                    <td>
-                                        <a href='update.php?id=".$row['id']."' class='btn btn-success btn-sm'>Edit</a>
-                                        <a href='delete.php?id=".$row['id']."' class='btn btn-danger btn-sm'>Delete</a>
-                                    </td>
-                                </tr>
-                            ";
+                            foreach($data as $row){
+                                echo "
+                                    <tr>
+                                        <td>".$row['id']."</td>
+                                        <td>".$row['name']."</td>
+                                        <td>".$row['email']."</td>
+                                        <td>".$row['role']."</td>
+                                        <td>
+                                            <a href='update.php?id=".$row['id']."' class='btn btn-success btn-sm'>Edit</a>
+                                            <a href='delete.php?id=".$row['id']."' class='btn btn-danger btn-sm'>Delete</a>
+                                        </td>
+                                    </tr>
+                                ";
+                            }
                         }
-                    }
                     ?>
                 </tbody>
             </table>

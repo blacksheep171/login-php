@@ -1,39 +1,24 @@
 <?php
 
-include "../model/connection.php";
-include "../model/user.php";
+    session_start();
 
-ob_start();
-session_start();
-if(isset($_SESSION['username'])){
-    header("Location:index.php");
-}
-    if(isset($_POST['login']) && ($_POST['login'])) {
+    if(isset($_SESSION['email'])){
+        header("Location: index.php");
+    }
+    include_once "../model/config.php";
+    include_once "../model/user.php";
+
+    if (isset($_POST['login'])) {
+        $con = Config::connect();
         $email = $_POST['email'];
-        $password = md5($_POST['password']);
-        
-        if(validatedLogin()){
-            $message = array_merge(validatedLogin(),$message);
-        }
-        $data = [
-            ':email' => $email,
-            ':password' => $password
-        ];
-        $stmt = $pdo->prepare("SELECT * FROM user WHERE `email` = :email AND `password` = :password ");
-        $stmt->execute($data);
-        $result = $stmt->setFetchMode(PDO::FETCH_ASSOC);
-        $data = $stmt->fetchAll();
-
-        if(!empty($data)) {
-            $data_username = $data[0]['name'];
-            $data_email = $data[0]['email'];
-        }
-       
-        if(!empty($data_email)) {
-            $_SESSION['username'] = $data_username;
+        $password = $_POST['password'];
+        $user_checked = checkLogin($con,$email,$password);
+        if($user_checked){
+            $_SESSION['user_name'] = $user_checked['name'];
+            $_SESSION['id'] = $user_checked['id'];
             header("Location:index.php");
         } else {
-            $message[] = "Login failed. Please try again";
+            $message[] = "login failed";
         }
     }
 ?>
