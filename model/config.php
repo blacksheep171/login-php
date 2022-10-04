@@ -7,7 +7,7 @@ class Config {
         $host = "127.0.0.1";
         $username = 'root';
         $password = '';
-        $dbname = 'php-login';
+        $dbname = 'php_login';
        
         try {
             $con = new PDO("mysql:host=$host;dbname=$dbname", $username, $password);

@@ -1,8 +1,8 @@
 <?php
 require "../model/config.php";
 require "../model/user.php";
-
-if (isset($_SESSION['user_name'])) {
+session_start();
+if(isset($_SESSION['user_name'])){
     $message = [];
     $con = Config::connect();
     $id = getCurrentId();

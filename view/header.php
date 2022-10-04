@@ -13,7 +13,7 @@
 <body>
 <div class="container">
     <div class="page-header">
-        <nav class="navbar navbar-light d-flex justify-content-end" style="background-color: #e3f2fd;">
+        <nav class="navbar navbar-light d-flex justify-content-start" style="background-color: #e3f2fd;">
             <a href='index.php' class='navbar-brand'>Home</a>
             <?php if(isset($_SESSION['user_name']) && ($_SESSION['user_name'] != "")) {
                 echo "

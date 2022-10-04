@@ -130,7 +130,7 @@ include_once "../model/config.php";
         $email = '';
         $role = '';
         $password = '';
-        $password_confirm = '';
+        $passwordConfirm = '';
         $errorMessages = [];
 
         if (isset($_POST['name'])) {
